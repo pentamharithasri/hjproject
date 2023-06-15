@@ -82,7 +82,6 @@ if 'logged_in' in st.session_state and st.session_state['logged_in']:
         orientation="horizontal",)
 
     if selected=="To-Do":
-        st.sidebar.write("task list")
         task=st.text_input("Task")
         add_button=st.button("Add Task")
         record_data={
@@ -92,7 +91,27 @@ if 'logged_in' in st.session_state and st.session_state['logged_in']:
             "status":"pending",
         }
         if add_button:
-            url=local_host+'todo/?type=insert/'
+            url=local_host+'todo/?type=insert'
             headers = {'Authorization': f'Bearer {token}'}
             response=requests.post(url,headers=headers,params=record_data)
+            if response.status_code==200:
+                st.write("Task added successfully")
+                
+        with st.sidebar:
+            url=local_host+'todo/?type=fetch'
+            headers = {'Authorization': f'Bearer {token}'}
+            params={
+                "username":username
+            }
+            response=requests.get(url,headers=headers,params=params)
+
+            if response.status_code==200:
+                record=response.json()
+                task=record['tasklist']
+                for item in task:
+                    task_button=st.checkbox(item,key=item)
+
+
+
+        
         

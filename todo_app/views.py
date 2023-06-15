@@ -14,10 +14,58 @@ def index(request):
 
 def insert(request,userName,task,description,status):
     record=Tasks.objects.create(username=userName,task=task,description=description,status=status)
-    record.save()
     response_data={"message":"insertion successfull"}
     return response_data
 
+def fetch(request,userName):
+    record=Tasks.objects.filter(username=userName).values()
+    task_list=[]
+    for item in record:
+        task_list.append(item['task'])
+    response_data={"tasklist":task_list}
+    return response_data
+
+
+class Todo(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self,request,*args,**kwargs):
+        try:
+            response ={"WOW":"get"}
+            Type = self.request.GET.get('type')
+            userName = self.request.GET.get('username')
+            task = self.request.GET.get('task')
+            status = self.request.GET.get('status')
+            description = self.request.GET.get('description')
+
+            if Type=='fetch':
+                response=fetch(request,userName)
+
+
+            return JsonResponse(response)
+            
+        except Exception as e:
+            return Response({'error': str(e)})
+
+    def post(self,request,*args,**kwargs):
+        try:
+            response ={"WOW":"post"}
+            Type = self.request.GET.get('type')
+            
+            userName = self.request.GET.get('username')
+            task = self.request.GET.get('task')
+            status = self.request.GET.get('status')
+            description = self.request.GET.get('description')
+            uploaded_file = self.request.FILES.get('file')
+            
+            if Type == 'insert':
+                response=insert(request,userName,task,description,status)
+
+            return JsonResponse(response)
+                
+        except Exception as e:
+            return Response({'error': str(e)})
+        
 class DataView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -30,41 +78,3 @@ class DataView(APIView):
             return Response(data)
         except Exception as e:
             return Response({'error': str(e)}, status=401)
-
-
-
-class Todo(APIView):
-    permission_classes = [IsAuthenticated]
-    
-    def get(self,request,*args,**kwargs):
-        try:
-            response ={"WOW":"wow - 1"}
-            Type = self.request.GET.get('type')
-            userName = self.request.GET.get('userName')
-            task = self.request.GET.get('task')
-            status = self.request.GET.get('status')
-            description = self.request.GET.get('description')
-
-
-            return JsonResponse(response)
-            
-        except Exception as e:
-            return Response({'error': str(e)})
-
-    def post(self,request,*args,**kwargs):
-        try:
-            response ={"WOW":"wow - 1"}
-            Type = self.request.GET.get('type')
-            userName = self.request.GET.get('username')
-            task = self.request.GET.get('task')
-            status = self.request.GET.get('status')
-            description = self.request.GET.get('description')
-            uploaded_file = self.request.FILES.get('file')
-            
-            if Type == 'insert':
-                response=insert(userName,task,description,status)
-
-            return JsonResponse(response)
-                
-        except Exception as e:
-            return Response({'error': str(e)})
