@@ -12,19 +12,36 @@ from django.views.decorators.csrf import csrf_exempt
 def index(request):
     return HttpResponse('index')
 
-def insert(request,userName,task,description,status):
-    record=Tasks.objects.create(username=userName,task=task,description=description,status=status)
+def insert(request,username,task,description,status):
+    record=Tasks.objects.create(username=username,task=task,description=description,status=status)
     response_data={"message":"insertion successfull"}
     return response_data
 
-def fetch(request,userName):
-    record=Tasks.objects.filter(username=userName).values()
+def fetch_pending(request,username):
+    record=Tasks.objects.filter(username=username,status="pending").values()
     task_list=[]
     for item in record:
         task_list.append(item['task'])
     response_data={"tasklist":task_list}
     return response_data
 
+def fetch_total(request,username):
+    record=Tasks.objects.filter(username=username).values()
+    task_list=[]
+    status_list=[]
+    for item in record:
+        task_list.append(item['task'])
+        status_list.append(item['status'])
+    response_data={"tasklist":task_list,"statuslist":status_list}
+    return response_data
+
+def update(request,username,task,description,status):
+    record=Tasks.objects.filter(username=username,task=task,status='pending').first()
+    record.description=description
+    record.status='done'
+    record.save()
+    response_data={"message":"Task status updated successfully"}
+    return response_data
 
 class Todo(APIView):
     permission_classes = [IsAuthenticated]
@@ -33,13 +50,15 @@ class Todo(APIView):
         try:
             response ={"WOW":"get"}
             Type = self.request.GET.get('type')
-            userName = self.request.GET.get('username')
+            username = self.request.GET.get('username')
             task = self.request.GET.get('task')
             status = self.request.GET.get('status')
             description = self.request.GET.get('description')
 
-            if Type=='fetch':
-                response=fetch(request,userName)
+            if Type=='fetch_pending':
+                response=fetch_pending(request,username)
+            if Type=='fetch_total':
+                response=fetch_total(request,username)
 
 
             return JsonResponse(response)
@@ -52,14 +71,16 @@ class Todo(APIView):
             response ={"WOW":"post"}
             Type = self.request.GET.get('type')
             
-            userName = self.request.GET.get('username')
+            username = self.request.GET.get('username')
             task = self.request.GET.get('task')
             status = self.request.GET.get('status')
             description = self.request.GET.get('description')
             uploaded_file = self.request.FILES.get('file')
             
             if Type == 'insert':
-                response=insert(request,userName,task,description,status)
+                response=insert(request,username,task,description,status)
+            if Type == 'update':
+                response=update(request,username,task,description,status)
 
             return JsonResponse(response)
                 
