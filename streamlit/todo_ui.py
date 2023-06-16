@@ -140,7 +140,6 @@ if 'logged_in' in st.session_state and st.session_state['logged_in']:
         }
         response=requests.get(url,headers=headers,params=params)
         if response.status_code==200:
-
             task_history=response.json()
             df = pd.DataFrame(task_history)
             df.index = [i+1 for i in range(len(df))]
